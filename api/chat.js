@@ -16,7 +16,6 @@ module.exports = async (req, res) => {
     const { prompt, type } = req.body;
 
     try {
-        // Gemini API key from environment variable
         const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
         
         if (!GEMINI_API_KEY) {
@@ -24,17 +23,15 @@ module.exports = async (req, res) => {
         }
 
         if (type === 'image') {
-            // For images, we'll use a placeholder since Gemini doesn't generate images
-            // You could integrate with another image API here
             return res.status(200).json({
                 imageUrl: "https://via.placeholder.com/1024x1024?text=Gemini+Text+Generation",
                 note: "Gemini doesn't generate images. Using placeholder."
             });
             
         } else {
-            // Gemini text generation
+            // CORRECT ENDPOINT: using v1 instead of v1beta
             const response = await axios.post(
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+                `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
                 {
                     contents: [{
                         parts: [{
@@ -49,7 +46,6 @@ module.exports = async (req, res) => {
                 }
             );
 
-            // Extract the response text
             const geminiResponse = response.data.candidates[0].content.parts[0].text;
 
             return res.status(200).json({
@@ -59,6 +55,13 @@ module.exports = async (req, res) => {
 
     } catch (error) {
         console.error('Gemini API Error:', error.response?.data || error.message);
+        
+        // If model not found, suggest alternatives
+        if (error.response?.status === 404) {
+            return res.status(500).json({
+                error: "Model not found. Try: gemini-1.5-pro, gemini-1.5-flash, or gemini-2.0-flash-exp"
+            });
+        }
         
         return res.status(error.response?.status || 500).json({
             error: error.response?.data || "Failed to process request"
