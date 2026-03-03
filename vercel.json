@@ -4,8 +4,5 @@
     "api/*.js": {
       "maxDuration": 10
     }
-  },
-  "env": {
-    "OPENAI_API_KEY": "@openai-api-key"
   }
 }
