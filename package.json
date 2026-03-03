@@ -1,12 +1,10 @@
 {
   "name": "nexa-backend",
   "version": "1.0.0",
-  "description": "Backend for Nexa AI Assistant with GPT-4.1 Mini",
+  "description": "Backend for Nexa AI Assistant with Bytez API",
   "main": "api/chat.js",
-  "scripts": {
-    "start": "node api/chat.js"
-  },
   "dependencies": {
+    "bytez.js": "^1.0.0",
     "axios": "^1.6.0"
   }
 }
