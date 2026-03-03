@@ -16,53 +16,50 @@ module.exports = async (req, res) => {
     const { prompt, type } = req.body;
 
     try {
-        let response;
+        // Gemini API key from environment variable
+        const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+        
+        if (!GEMINI_API_KEY) {
+            return res.status(500).json({ error: 'Gemini API key not configured' });
+        }
 
         if (type === 'image') {
-
-            response = await axios.post(
-                'https://api.openai.com/v1/images/generations',
-                {
-                    model: "gpt-image-1",
-                    prompt: prompt,
-                    size: "1024x1024"
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-                        'Content-Type': 'application/json'
-                    }
-                }
-            );
-
+            // For images, we'll use a placeholder since Gemini doesn't generate images
+            // You could integrate with another image API here
             return res.status(200).json({
-                imageUrl: response.data.data[0].url
+                imageUrl: "https://via.placeholder.com/1024x1024?text=Gemini+Text+Generation",
+                note: "Gemini doesn't generate images. Using placeholder."
             });
-
+            
         } else {
-
-            response = await axios.post(
-                'https://api.openai.com/v1/responses',
+            // Gemini text generation
+            const response = await axios.post(
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
                 {
-                    model: "gpt-4.1-mini",
-                    input: prompt
+                    contents: [{
+                        parts: [{
+                            text: prompt
+                        }]
+                    }]
                 },
                 {
                     headers: {
-                        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
                         'Content-Type': 'application/json'
                     }
                 }
             );
 
+            // Extract the response text
+            const geminiResponse = response.data.candidates[0].content.parts[0].text;
+
             return res.status(200).json({
-                response: response.data.output[0].content[0].text
+                response: geminiResponse
             });
         }
 
     } catch (error) {
-        console.error(error.response?.data || error.message);
-
+        console.error('Gemini API Error:', error.response?.data || error.message);
+        
         return res.status(error.response?.status || 500).json({
             error: error.response?.data || "Failed to process request"
         });
